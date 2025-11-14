@@ -20,7 +20,7 @@ Nuestro objetivo es fortalecer el aprendizaje colaborativo y aplicar los princip
 
 | Código / Carpeta  | Descripción breve                                                                        | Enlace                                                                     |
 | ----------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| **Tarea03-U2-G4** | Primer taller introductorio.                   | [Ver carpeta](https://github.com/25-26-CSI/GRUPO6/tree/main/TAREA03-U2-G4) |
+| **Tarea03-U2-G4** | Primer taller introductorio.                   | [Ver carpeta](https://github.com/25-26-DM/GRUPO4/tree/main/Tarea03-U2-G4) |
 
 > 📘 *Este índice se ampliará conforme se agreguen nuevas tareas, proyectos y prácticas de laboratorio.*
 
