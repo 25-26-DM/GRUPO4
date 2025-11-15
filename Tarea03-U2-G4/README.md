@@ -86,7 +86,7 @@ La estructura relevante del proyecto es:
 * **Material 3**
 * **Gradle KTS**
 
-## 👥 Integrantes – Grupo 4
+## 👥 Integrantes – Grupo 4 (Ordenados por Apellido)
 
 | Integrante             | Rol dentro del Taller                                               |
 | ---------------------- | ------------------------------------------------------------------- |
@@ -97,7 +97,6 @@ La estructura relevante del proyecto es:
 | **Ruth Rosero**        | Revisión del funcionamiento general y compatibilidad de versiones   |
 | **Joan Santamaria**    | Gestión de íconos, drawables y pruebas de compilación               |
 | **Dennis Trujillo**    | Integración final en MainActivity.kt y coordinación general         |
-
 
 ## 📸 Resultado Final
 
@@ -114,4 +113,5 @@ La aplicación muestra:
 
 Proyecto desarrollado por **GRUPO 4 – Dispositivos Móviles**,
 Facultad de Ingeniería — Universidad Central del Ecuador.
+
 

@@ -6,15 +6,15 @@ Nuestro objetivo es fortalecer el aprendizaje colaborativo y aplicar los princip
 
 ## 🧩 Integrantes del Grupo 6
 
-| Nombre                 | GitHub             |
-| ---------------------- | ------------------ |
-| **Byron Condolo**      | [Ver Github](https://github.com/ByronCondolo) |
-| **Ruth Rosero**        | [Ver Github](https://github.com/rerosero) |
+| Nombre                 | GitHub                                          |
+| ---------------------- | ----------------------------------------------- |
+| **Byron Condolo**      | [Ver Github](https://github.com/ByronCondolo)   |
+| **Pamela Fernández**   | [Ver Github](https://github.com/pameFer19)      |
+| **Marielena González** | [Ver Github](https://github.com/Marielena-GS)   |
+| **Angelo Lascano**     | [Ver Github](https://github.com/adlasca)        |
+| **Ruth Rosero**        | [Ver Github](https://github.com/rerosero)       |
 | **Joan Santamaria**    | [Ver Github](https://github.com/jisantamariar1) |
-| **Marielena González** | [Ver Github](https://github.com/Marielena-GS) |
-| **Pamela Fernández**   | [Ver Github](https://github.com/pameFer19) |
-| **Angelo Lascano**     | [Ver Github](https://github.com/adlasca) |
-| **Dennis Trujillo**    | [Ver Github](https://github.com/Dennis290699) |
+| **Dennis Trujillo**    | [Ver Github](https://github.com/Dennis290699)   |
 
 ## 🗂️ Índice de Directorios
 
