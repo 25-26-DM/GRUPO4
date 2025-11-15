@@ -80,17 +80,20 @@ fun PantallaUCE() {
 
             Box(
                 modifier = Modifier
-                    .background(Color.White.copy(alpha = 0.15f), shape = MaterialTheme.shapes.medium)
+                    .background(
+                        Color.White.copy(alpha = 0.15f),
+                        shape = MaterialTheme.shapes.medium
+                    )
                     .padding(16.dp)
             ) {
                 Text(
                     text = """
                         - Byron Condolo
+                        - Pamela Fernández
                         - Marielena González
                         - Angelo Lascano
-                        - Pamela Fernández
-                        - Joan Santamaria
                         - Ruth Rosero
+                        - Joan Santamaria
                         - Dennis Trujillo
                     """.trimIndent(),
                     color = Color.Black,
