@@ -1,21 +1,27 @@
-Cupcake app
-=================================
+# Cupcake App
 
-This app contains an order flow for cupcakes with options for quantity, flavor, and pickup date.
-The order details get displayed on an order summary screen and can be shared to another app to
-send the order.
+Esta app permite realizar pedidos de galletas (cupcakes) eligiendo **cantidad**, **sabor** y **fecha de retiro**.  
+Los detalles del pedido se muestran en una **pantalla de resumen** y pueden compartirse con otra app.  
 
+## Características principales
+- Selección de cantidad: 1, 6 o 12 galletas.  
+- Selección de sabor **localizado** según el idioma del dispositivo.  
+- Elección de fecha de retiro (hoy + próximos 3 días).  
+- Cálculo dinámico del precio según cantidad, sabor y fecha.  
+- Compatibilidad con múltiples idiomas usando `strings.xml`.  
 
-Pre-requisites
---------------
-* Experience with Kotlin syntax.
-* How to create and run a project in Android Studio.
-* How to create composable functions 
+## Notas de implementación
+- Los sabores se manejan mediante IDs de recursos de `strings.xml`, permitiendo que la app funcione en cualquier idioma.  
+- `OrderViewModel` gestiona el estado del pedido y recalcula el precio automáticamente.  
+- Solo se requiere actualizar `strings.xml` para añadir nuevos idiomas o sabores.  
 
+## Pre-requisitos
+- Conocimiento básico de Kotlin.  
+- Saber crear y ejecutar proyectos en Android Studio.  
+- Conocer funciones composables de Jetpack Compose.  
 
-Getting Started
----------------
-1. Install Android Studio, if you don't already have it.
-2. Download the sample.
-3. Import the sample into Android Studio.
-4. Build and run the sample.
+## Cómo empezar
+1. Instalar Android Studio si aún no lo tienes.  
+2. Descargar el proyecto.  
+3. Importar el proyecto en Android Studio.  
+4. Compilar y ejecutar la app.
