@@ -23,6 +23,7 @@ Nuestro objetivo es fortalecer el aprendizaje colaborativo y aplicar los princip
 | **Tarea03-U2-G4** | Primer taller introductorio.                   | [Ver carpeta](https://github.com/25-26-DM/GRUPO4/tree/main/Tarea03-U2-G4) |
 | **Tarea04-U2-G4** | Segundo taller Image/Horizontal-VerticalAlignment| [Ver carpeta](https://github.com/25-26-DM/GRUPO4/tree/main/Tarea04-U2-G4)|
 | **Tarea05-U2-G4** | Tercer Taller Idiomas/Pantallas                  | [Ver carpeta](https://github.com/25-26-DM/GRUPO4/tree/main/Tarea05-U2-G4)|
+| **Tarea06-U2-G4   | Navegación                                       | [Ver carpeta](https://github.com/25-26-DM/GRUPO4/tree/main/TALLER4)    |
 > 📘 *Este índice se ampliará conforme se agreguen nuevas tareas, proyectos y prácticas de laboratorio.*
 
 ## 🤝 Agradecimientos
