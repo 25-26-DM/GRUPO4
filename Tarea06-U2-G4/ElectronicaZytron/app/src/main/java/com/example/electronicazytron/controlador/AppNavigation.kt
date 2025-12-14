@@ -8,7 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.electronicazytron.modelo.Usuario
 import com.example.electronicazytron.modelo.UsuarioRepository
-import com.example.electronicazytron.vista.LoginScreen
+import com.example.electronicazytron.vistas.LoginScreen
 import com.example.electronicazytron.vistas.ProductScreen
 
 
@@ -16,7 +16,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.electronicazytron.modelo.ProductoViewModel
 import com.example.electronicazytron.modelo.UsuarioViewModel
 
-import com.example.electronicazytron.vista.InsertProducScreen
+import com.example.electronicazytron.vista.InsertProductScreen
 import com.example.electronicazytron.vistas.HomeScreen
 import com.example.electronicazytron.vistas.RegistrarScreen
 import com.example.electronicazytron.vistas.UpdateProductScreen
@@ -67,7 +67,7 @@ fun AppNavigation() {
         }
 
         composable("insertProduct") {
-            InsertProducScreen(productoViewModel, navController)
+            InsertProductScreen(productoViewModel, navController)
         }
 
         composable("insertUser") {
@@ -75,6 +75,3 @@ fun AppNavigation() {
         }
     }
 }
-
-
-

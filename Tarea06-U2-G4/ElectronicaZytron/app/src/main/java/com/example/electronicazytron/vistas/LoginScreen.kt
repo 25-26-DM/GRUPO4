@@ -1,19 +1,19 @@
-package com.example.electronicazytron.vista
+package com.example.electronicazytron.vistas
 
 import android.annotation.SuppressLint
-import android.content.res.Configuration
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonOutline
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -21,41 +21,81 @@ fun LoginScreen(
     onValidar: (String, String) -> Unit
 ) {
     Scaffold {
-        BodyContent(onValidar)
+        LoginContent(onValidar)
     }
 }
 
 @Composable
-fun BodyContent(
+private fun LoginContent(
     onValidar: (String, String) -> Unit
 ) {
     var nombre by remember { mutableStateOf("") }
     var apellido by remember { mutableStateOf("") }
 
-    Column(modifier = Modifier.fillMaxSize().padding(top = 200.dp),
-        horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Ingrese Su Nombre:")
-        TextField(
-            value = nombre,
-            onValueChange = { nombre = it },
-        )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Inicio de Sesión",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
 
-        Text("Ingrese Su Apellido:")
-        TextField(
-            value = apellido,
-            onValueChange = { apellido = it },
-        )
+                OutlinedTextField(
+                    value = nombre,
+                    onValueChange = { nombre = it },
+                    label = { Text("Nombre") },
+                    leadingIcon = {
+                        Icon(Icons.Default.Person, contentDescription = null)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-        Button(onClick = {
-            onValidar(nombre, apellido)
-        }) {
-            Text("Ingresar")
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = apellido,
+                    onValueChange = { apellido = it },
+                    label = { Text("Apellido") },
+                    leadingIcon = {
+                        Icon(Icons.Default.PersonOutline, contentDescription = null)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        onValidar(nombre, apellido)
+                    }
+                ) {
+                    Text("Ingresar")
+                }
+            }
         }
     }
 }
 
 @Preview(showSystemUi = true)
 @Composable
-fun DefaultPreview() {
-   LoginScreen { _, _ -> }
+fun LoginScreenPreview() {
+    MaterialTheme {
+        LoginScreen { _, _ -> }
+    }
 }

@@ -1,6 +1,5 @@
 package com.example.electronicazytron.vistas
 
-import android.annotation.SuppressLint
 import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,9 +13,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,172 +30,164 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.electronicazytron.modelo.ProductoViewModel
 import com.example.electronicazytron.modelo.Producto
+import com.example.electronicazytron.modelo.ProductoViewModel
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun ProductScreen(productoViewModel: ProductoViewModel = viewModel(),
-                  navController: NavController) {
-    // Cargar productos al entrar a la pantalla
+fun ProductScreen(
+    productoViewModel: ProductoViewModel = viewModel(),
+    navController: NavController
+) {
     LaunchedEffect(Unit) {
         productoViewModel.cargarProductos()
     }
 
-    Scaffold {
-        BodyContent(productoViewModel,navController)
+    Scaffold { innerPadding ->
+        BodyContent(
+            productos = productoViewModel.productos,
+            modifier = Modifier.padding(innerPadding),
+            onIngresarClick = { navController.navigate("insertProduct") },
+            onSalirClick = { navController.navigate("login") },
+            onUpdateClick = { codigo -> navController.navigate("updateProduct/$codigo") },
+            onDeleteClick = { codigo -> productoViewModel.delete(codigo) }
+        )
     }
 }
 
 @Composable
-fun BodyContent(productoViewModel: ProductoViewModel,navController: NavController) {
-    val productos = productoViewModel.productos
-    ProductList(productos,navController,productoViewModel)
-}
+fun BodyContent(
+    productos: List<Producto>,
+    modifier: Modifier = Modifier,
+    onIngresarClick: () -> Unit,
+    onSalirClick: () -> Unit,
+    onUpdateClick: (String) -> Unit,
+    onDeleteClick: (String) -> Unit
+) {
+    var currentPage by remember { mutableStateOf(0) }
+    val pageSize = 5
+    val startIndex = currentPage * pageSize
+    val endIndex = minOf((currentPage + 1) * pageSize, productos.size)
+    val paginatedProducts = if (startIndex < endIndex) productos.subList(startIndex, endIndex) else emptyList()
 
-@Composable
-fun ProductList(productos: List<Producto>,navController: NavController,productoViewModel: ProductoViewModel) {
-
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxSize()) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 40.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 40.dp),
             horizontalArrangement = Arrangement.Center,
         ) {
-            Button(onClick = {navController.navigate("insertProduct")}) { Text("Ingresar") }
+            Button(onClick = onIngresarClick) { Text("Ingresar") }
             Spacer(modifier = Modifier.width(16.dp))
-
-            Button(onClick = {
-                navController.navigate("login") {
-                    popUpTo(0) { inclusive = true } // borra todo el back stack
-                    launchSingleTop = true          // evita duplicar login
-                }
-            }) { Text("Salir") }
+            Button(onClick = onSalirClick) { Text("Salir") }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            items(productos) { producto ->
-                var expanded by remember { mutableStateOf(false) }
+        ProductList(
+            productos = paginatedProducts,
+            onUpdateClick = onUpdateClick,
+            onDeleteClick = onDeleteClick
+        )
 
+        Spacer(modifier = Modifier.weight(1f))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(
+                onClick = { if (currentPage > 0) currentPage-- },
+                enabled = currentPage > 0
+            ) {
+                Text("Anterior")
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text("Página ${currentPage + 1}")
+            Spacer(modifier = Modifier.width(16.dp))
+            Button(
+                onClick = { if (endIndex < productos.size) currentPage++ },
+                enabled = endIndex < productos.size
+            ) {
+                Text("Siguiente")
+            }
+        }
+    }
+}
+
+@Composable
+fun ProductList(
+    productos: List<Producto>,
+    onUpdateClick: (String) -> Unit,
+    onDeleteClick: (String) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(500.dp), // Altura fija para la lista
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        items(productos) { producto ->
+            var expanded by remember { mutableStateOf(false) }
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .padding(vertical = 8.dp)
+                    .clickable { expanded = !expanded },
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
                 Column(
-                    modifier = Modifier
-                        .clickable { expanded = !expanded }
-                        .padding(8.dp),
+                    modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(text = "${producto.codigo}")
-                    Text(text = "${producto.descripcion}")
+                    Text(text = "Código: ${producto.codigo}")
+                    Text(text = "Descripción: ${producto.descripcion}")
 
                     if (expanded) {
-                        Text(text = "$${producto.costo}")
-                        Text(text = "Stock: ${producto.disponibilidad}")
-                        Text(text = "Fecha de Fabricación: ${producto.fecha_fab}")
+                        Text(text = "Costo: $${producto.costo}")
+                        Text(text = "Disponibilidad: ${producto.disponibilidad}")
+                        Text(text = "Fecha: ${producto.fecha_fab}")
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Button(onClick = {
-                            navController.navigate("updateProduct/${producto.codigo}") }) { Text("Modificar") }
+                            onUpdateClick(producto.codigo)
+                        }) { Text("Modificar") }
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(onClick = {
-                            productoViewModel.delete(producto.codigo)
-                        }) { Text("Eliminar")}
+                            onDeleteClick(producto.codigo)
+                        }) { Text("Eliminar") }
                     }
                 }
             }
         }
     }
-
 }
 
-
-
-@Preview(showSystemUi = true)
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Preview(showSystemUi = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
 fun DefaultPreview() {
     val productosFake = listOf(
         Producto("P001", "Laptop Lenovo IdeaPad 3", "2024-01-15", 750.0, 10),
-        Producto("P002", "Mouse Logitech M185", "2023-11-20", 18.5, 45)
+        Producto("P002", "Mouse Logitech M185", "2023-11-20", 18.5, 45),
+        Producto("P003", "Teclado Redragon K552", "2023-10-05", 50.0, 30),
+        Producto("P004", "Monitor Samsung Odyssey G5", "2024-02-28", 350.0, 15),
+        Producto("P005", "Auriculares Sony WH-1000XM4", "2023-12-10", 300.0, 25),
+        Producto("P006", "Webcam Logitech C920", "2024-03-12", 80.0, 40)
     )
-    BodyContentPreview(productosFake)
-}
-
-@Composable
-fun BodyContentPreview(productos: List<Producto>) {
-    val scrollState = rememberScrollState()
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp)
-    ) {
-        // Primera columna: botones
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(onClick = {}) {
-                Text("Ingresar")
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Button(onClick = {}) {
-                Text("Salir")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp)) // espacio entre columnas
-
-        // Segunda columna: productos
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(scrollState),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            for (producto in productos) {
-                var expanded by remember { mutableStateOf(false) }
-
-                Column(
-                    modifier = Modifier
-                        .clickable { expanded = !expanded }
-                        .padding(8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // Siempre mostrar código y nombre
-                    Text(text = "${producto.codigo}")
-                    Text(text = "${producto.descripcion}")
-
-                    // Mostrar detalles solo si está expandido
-                    if (expanded) {
-                        Text(text = "$${producto.costo}")
-                        Text(text = "Stock: ${producto.disponibilidad}")
-                        Text(text = "Fecha: ${producto.fecha_fab}")
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-
-                    ) {
-                        Button(onClick = {}) {
-                            Text("Modificar")
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Button(onClick = {}) {
-                            Text("Eliminar")
-                        }
-                    }
-                }
-            }
-        }
-    }
-
+    BodyContent(
+        productos = productosFake,
+        onIngresarClick = {},
+        onSalirClick = {},
+        onUpdateClick = {},
+        onDeleteClick = {}
+    )
 }
