@@ -46,7 +46,7 @@ fun BodyContent(onLogin: () -> Unit,
         Text(text = "ZytronCompany")
         Spacer(modifier = Modifier.height(20.dp))
         Button(onClick = { onLogin() }) {
-            Text("Iniciar Sesion")
+            Text("Iniciar Sesión")
         }
         Spacer(modifier = Modifier.height(20.dp))
         Button(onClick = { onRegistrar()}) {

@@ -94,7 +94,7 @@ fun ProductList(productos: List<Producto>,navController: NavController,productoV
                     if (expanded) {
                         Text(text = "$${producto.costo}")
                         Text(text = "Stock: ${producto.disponibilidad}")
-                        Text(text = "Fecha: ${producto.fecha_fab}")
+                        Text(text = "Fecha de Fabricación: ${producto.fecha_fab}")
                     }
 
                     Row(

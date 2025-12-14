@@ -35,10 +35,10 @@ fun AppNavigation() {
         composable("home") {
             HomeScreen(
                 onLogin = {
-                    navController.navigate("login")
+                    navController.navigate("login") //<-- Redireccion de boton al login
                 },
                 onRegistrar={
-                    navController.navigate("insertUser")
+                    navController.navigate("insertUser") //<-- Redirreccion del boton al registro de usuarios
                 }
             )
         }

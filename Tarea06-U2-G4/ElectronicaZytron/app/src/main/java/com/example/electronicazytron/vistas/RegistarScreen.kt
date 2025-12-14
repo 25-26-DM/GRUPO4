@@ -1,5 +1,6 @@
 package com.example.electronicazytron.vistas
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,6 +24,7 @@ import androidx.navigation.NavController
 import com.example.electronicazytron.modelo.Usuario
 import com.example.electronicazytron.modelo.UsuarioViewModel
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun RegistrarScreen(userViewModel: UsuarioViewModel,
                     navController: NavController){
@@ -47,7 +49,7 @@ fun BodyContent(userViewModel: UsuarioViewModel,
             onValueChange = { nombre = it },
         )
         Spacer(modifier = Modifier.height(20.dp))
-        Text("Fecha de Fabricacion:")
+        Text("Apellido")
         Spacer(modifier = Modifier.height(15.dp))
         TextField(
             value = apellido,

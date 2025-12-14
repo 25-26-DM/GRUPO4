@@ -43,14 +43,14 @@ fun BodyContent(productoViewModel: ProductoViewModel,
 
     Column(modifier = Modifier.fillMaxSize().padding(top = 200.dp),
         horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Codigo de Producto:")
+        Text("Código de Producto:")
         Spacer(modifier = Modifier.height(15.dp))
         TextField(
             value = codigo,
             onValueChange = { codigo = it },
         )
         Spacer(modifier = Modifier.height(20.dp))
-        Text("Fecha de Fabricacion:")
+        Text("Fecha de Fabricación:")
         Spacer(modifier = Modifier.height(15.dp))
         TextField(
             value = fecha_fab,
@@ -79,7 +79,7 @@ fun BodyContent(productoViewModel: ProductoViewModel,
             },
         )
         Spacer(modifier = Modifier.height(20.dp))
-        Text("Descripcion de Producto:")
+        Text("Descripción de Producto:")
         Spacer(modifier = Modifier.height(15.dp))
         TextField(
             value = descripcion,
@@ -111,12 +111,12 @@ fun InsertProductScreenEmptyPreview() {
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Codigo de Producto:")
+        Text("Código de Producto:")
         Spacer(modifier = Modifier.height(8.dp))
         TextField(value = "", onValueChange = {})
 
         Spacer(modifier = Modifier.height(8.dp))
-        Text("Fecha de Fabricacion:")
+        Text("Fecha de Fabricación:")
         TextField(value = "", onValueChange = {})
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -128,7 +128,7 @@ fun InsertProductScreenEmptyPreview() {
         TextField(value = "", onValueChange = {})
 
         Spacer(modifier = Modifier.height(8.dp))
-        Text("Descripcion:")
+        Text("Descripción:")
         TextField(value = "", onValueChange = {})
 
         Spacer(modifier = Modifier.height(16.dp))
