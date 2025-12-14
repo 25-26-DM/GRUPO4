@@ -32,9 +32,8 @@ private fun LoginContent(
     var nombre by remember { mutableStateOf("") }
     var apellido by remember { mutableStateOf("") }
 
-    // 🔹 Estados del Alert
-    var showDialog by remember { mutableStateOf(false) }
-    var mensajeDialog by remember { mutableStateOf("") }
+    // 🔹 Estado de error (sin AlertDialog)
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -61,24 +60,32 @@ private fun LoginContent(
 
                 OutlinedTextField(
                     value = nombre,
-                    onValueChange = { nombre = it },
+                    onValueChange = {
+                        nombre = it
+                        errorMessage = null
+                    },
                     label = { Text("Nombre") },
                     leadingIcon = {
                         Icon(Icons.Default.Person, contentDescription = null)
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = errorMessage != null
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 OutlinedTextField(
                     value = apellido,
-                    onValueChange = { apellido = it },
+                    onValueChange = {
+                        apellido = it
+                        errorMessage = null
+                    },
                     label = { Text("Apellido") },
                     leadingIcon = {
                         Icon(Icons.Default.PersonOutline, contentDescription = null)
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = errorMessage != null
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -86,35 +93,33 @@ private fun LoginContent(
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
-                        val esValido = onValidar(nombre, apellido)
-
-                        mensajeDialog = if (esValido) {
-                            "✅ Credenciales correctas"
-                        } else {
-                            "❌ Nombre o apellido incorrectos"
+                        if (nombre.isBlank() || apellido.isBlank()) {
+                            errorMessage = "Complete todos los campos"
+                            return@Button
                         }
 
-                        showDialog = true
+                        val esValido = onValidar(nombre, apellido)
+
+                        if (!esValido) {
+                            errorMessage = "Nombre o apellido incorrectos"
+                        }
+                        // Si es válido, el NavController navega desde AppNavigation
                     }
                 ) {
                     Text("Ingresar")
                 }
-            }
-        }
-    }
 
-    // 🔔 ALERT DIALOG
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text("Resultado") },
-            text = { Text(mensajeDialog) },
-            confirmButton = {
-                Button(onClick = { showDialog = false }) {
-                    Text("Aceptar")
+                // Mensaje de error elegante
+                if (errorMessage != null) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = errorMessage!!,
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 14.sp
+                    )
                 }
             }
-        )
+        }
     }
 }
 
@@ -122,6 +127,6 @@ private fun LoginContent(
 @Composable
 fun LoginScreenPreview() {
     MaterialTheme {
-        LoginScreen { _, _ -> true }
+        LoginScreen { _, _ -> false }
     }
 }

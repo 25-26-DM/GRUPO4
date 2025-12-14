@@ -2,28 +2,16 @@ package com.example.electronicazytron.vistas
 
 import android.content.res.Configuration
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,6 +21,7 @@ import androidx.navigation.NavController
 import com.example.electronicazytron.modelo.Producto
 import com.example.electronicazytron.modelo.ProductoViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductScreen(
     productoViewModel: ProductoViewModel = viewModel(),
@@ -42,152 +31,199 @@ fun ProductScreen(
         productoViewModel.cargarProductos()
     }
 
-    Scaffold { innerPadding ->
-        BodyContent(
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Productos") },
+                actions = {
+
+                    // ➕ Agregar producto
+                    IconButton(onClick = {
+                        navController.navigate("insertProduct")
+                    }) {
+                        Icon(Icons.Default.Add, contentDescription = "Agregar")
+                    }
+
+                    // 🚪 Salir (muestra diálogo)
+                    IconButton(onClick = {
+                        showLogoutDialog = true
+                    }) {
+                        Icon(Icons.Default.ExitToApp, contentDescription = "Cerrar sesión")
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        ProductContent(
             productos = productoViewModel.productos,
-            modifier = Modifier.padding(innerPadding),
-            onIngresarClick = { navController.navigate("insertProduct") },
-            onSalirClick = { navController.navigate("login") },
-            onUpdateClick = { codigo -> navController.navigate("updateProduct/$codigo") },
-            onDeleteClick = { codigo -> productoViewModel.delete(codigo) }
+            modifier = Modifier.padding(padding),
+            onUpdate = { navController.navigate("updateProduct/$it") },
+            onDelete = { productoViewModel.delete(it) }
+        )
+    }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = {
+                Text(
+                    text = "Cerrar sesión",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            },
+            text = {
+                Text("¿Estás seguro de que deseas cerrar sesión?")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLogoutDialog = false
+                        navController.navigate("login") {
+                            popUpTo("productos") { inclusive = true }
+                        }
+                    }
+                ) {
+                    Text("Sí, salir")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showLogoutDialog = false }
+                ) {
+                    Text("Cancelar")
+                }
+            }
         )
     }
 }
 
 @Composable
-fun BodyContent(
+fun ProductContent(
     productos: List<Producto>,
     modifier: Modifier = Modifier,
-    onIngresarClick: () -> Unit,
-    onSalirClick: () -> Unit,
-    onUpdateClick: (String) -> Unit,
-    onDeleteClick: (String) -> Unit
+    onUpdate: (String) -> Unit,
+    onDelete: (String) -> Unit
 ) {
     var currentPage by remember { mutableStateOf(0) }
     val pageSize = 5
     val startIndex = currentPage * pageSize
-    val endIndex = minOf((currentPage + 1) * pageSize, productos.size)
-    val paginatedProducts = if (startIndex < endIndex) productos.subList(startIndex, endIndex) else emptyList()
+    val endIndex = minOf(startIndex + pageSize, productos.size)
+    val paginatedProducts =
+        if (startIndex < endIndex) productos.subList(startIndex, endIndex) else emptyList()
 
     Column(modifier = modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 40.dp),
-            horizontalArrangement = Arrangement.Center,
+
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Button(onClick = onIngresarClick) { Text("Ingresar") }
-            Spacer(modifier = Modifier.width(16.dp))
-            Button(onClick = onSalirClick) { Text("Salir") }
+            items(paginatedProducts) { producto ->
+                ProductCard(
+                    producto = producto,
+                    onUpdate = onUpdate,
+                    onDelete = onDelete
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        ProductList(
-            productos = paginatedProducts,
-            onUpdateClick = onUpdateClick,
-            onDeleteClick = onDeleteClick
+        PaginationControls(
+            currentPage = currentPage,
+            canGoNext = endIndex < productos.size,
+            onPrevious = { currentPage-- },
+            onNext = { currentPage++ }
         )
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(
-                onClick = { if (currentPage > 0) currentPage-- },
-                enabled = currentPage > 0
-            ) {
-                Text("Anterior")
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Text("Página ${currentPage + 1}")
-            Spacer(modifier = Modifier.width(16.dp))
-            Button(
-                onClick = { if (endIndex < productos.size) currentPage++ },
-                enabled = endIndex < productos.size
-            ) {
-                Text("Siguiente")
-            }
-        }
     }
 }
 
 @Composable
-fun ProductList(
-    productos: List<Producto>,
-    onUpdateClick: (String) -> Unit,
-    onDeleteClick: (String) -> Unit
+fun ProductCard(
+    producto: Producto,
+    onUpdate: (String) -> Unit,
+    onDelete: (String) -> Unit
 ) {
-    LazyColumn(
+    var expanded by remember { mutableStateOf(false) }
+
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(500.dp), // Altura fija para la lista
-        horizontalAlignment = Alignment.CenterHorizontally
+            .clickable { expanded = !expanded },
+        elevation = CardDefaults.cardElevation(6.dp)
     ) {
-        items(productos) { producto ->
-            var expanded by remember { mutableStateOf(false) }
+        Column(modifier = Modifier.padding(16.dp)) {
 
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .padding(vertical = 8.dp)
-                    .clickable { expanded = !expanded },
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            Text(
+                text = producto.descripcion,
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+            Text("Código: ${producto.codigo}")
+
+            if (expanded) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Costo: $${producto.costo}")
+                Text("Stock: ${producto.disponibilidad}")
+                Text("Fecha fabricación: ${producto.fecha_fab}")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = "Código: ${producto.codigo}")
-                    Text(text = "Descripción: ${producto.descripcion}")
-
-                    if (expanded) {
-                        Text(text = "Costo: $${producto.costo}")
-                        Text(text = "Disponibilidad: ${producto.disponibilidad}")
-                        Text(text = "Fecha: ${producto.fecha_fab}")
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Button(onClick = {
-                            onUpdateClick(producto.codigo)
-                        }) { Text("Modificar") }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Button(onClick = {
-                            onDeleteClick(producto.codigo)
-                        }) { Text("Eliminar") }
-                    }
+                IconButton(onClick = { onUpdate(producto.codigo) }) {
+                    Icon(Icons.Default.Edit, contentDescription = "Editar")
+                }
+                IconButton(onClick = { onDelete(producto.codigo) }) {
+                    Icon(Icons.Default.Delete, contentDescription = "Eliminar")
                 }
             }
         }
     }
 }
 
+@Composable
+fun PaginationControls(
+    currentPage: Int,
+    canGoNext: Boolean,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(12.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Button(onClick = onPrevious, enabled = currentPage > 0) {
+            Text("Anterior")
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Text("Página ${currentPage + 1}")
+        Spacer(modifier = Modifier.width(16.dp))
+        Button(onClick = onNext, enabled = canGoNext) {
+            Text("Siguiente")
+        }
+    }
+}
+
 @Preview(showSystemUi = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
-fun DefaultPreview() {
+fun ProductScreenPreview() {
     val productosFake = listOf(
-        Producto("P001", "Laptop Lenovo IdeaPad 3", "2024-01-15", 750.0, 10),
-        Producto("P002", "Mouse Logitech M185", "2023-11-20", 18.5, 45),
-        Producto("P003", "Teclado Redragon K552", "2023-10-05", 50.0, 30),
-        Producto("P004", "Monitor Samsung Odyssey G5", "2024-02-28", 350.0, 15),
-        Producto("P005", "Auriculares Sony WH-1000XM4", "2023-12-10", 300.0, 25),
-        Producto("P006", "Webcam Logitech C920", "2024-03-12", 80.0, 40)
+        Producto("P001", "Laptop Lenovo", "2024-01-15", 750.0, 10),
+        Producto("P002", "Mouse Logitech", "2023-11-20", 18.5, 45),
+        Producto("P003", "Teclado Redragon", "2023-10-05", 50.0, 30)
     )
-    BodyContent(
+
+    ProductContent(
         productos = productosFake,
-        onIngresarClick = {},
-        onSalirClick = {},
-        onUpdateClick = {},
-        onDeleteClick = {}
+        onUpdate = {},
+        onDelete = {}
     )
 }
