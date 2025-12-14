@@ -1,83 +1,101 @@
-package com.example.electronicazytron.vista
+package com.example.electronicazytron.vistas
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun LoginScreen(
-    onValidar: (String, String) -> Boolean
+    onValidar: (String, String) -> Unit
 ) {
     Scaffold {
-        BodyContent(onValidar)
+        LoginContent(onValidar)
     }
 }
 
 @Composable
-fun BodyContent(
-    onValidar: (String, String) -> Boolean
+private fun LoginContent(
+    onValidar: (String, String) -> Unit
 ) {
     var nombre by remember { mutableStateOf("") }
     var apellido by remember { mutableStateOf("") }
 
-    // Estado para mostrar el popup
-    var showDialog by remember { mutableStateOf(false) }
-    var mensajeDialog by remember { mutableStateOf("") }
-
     Column(
-        modifier = Modifier.fillMaxSize().padding(top = 200.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Text("Ingrese Su Nombre:")
-        TextField(
-            value = nombre,
-            onValueChange = { nombre = it },
-        )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Inicio de Sesión",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
 
-        Text("Ingrese Su Apellido:")
-        TextField(
-            value = apellido,
-            onValueChange = { apellido = it },
-        )
+                OutlinedTextField(
+                    value = nombre,
+                    onValueChange = { nombre = it },
+                    label = { Text("Nombre") },
+                    leadingIcon = {
+                        Icon(Icons.Default.Person, contentDescription = null)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-        Button(onClick = {
-            val esValido = onValidar(nombre, apellido)
-            if (esValido) {
-                mensajeDialog = "¡Credenciales correctas!"
-            } else {
-                mensajeDialog = "Nombre o apellido incorrectos"
-            }
-            showDialog = true
-        }) {
-            Text("Ingresar")
-        }
-    }
+                Spacer(modifier = Modifier.height(16.dp))
 
-    // Popup de alerta
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = { Text("Login") },
-            text = { Text(mensajeDialog) },
-            confirmButton = {
-                Button(onClick = { showDialog = false }) {
-                    Text("Aceptar")
+                OutlinedTextField(
+                    value = apellido,
+                    onValueChange = { apellido = it },
+                    label = { Text("Apellido") },
+                    leadingIcon = {
+                        Icon(Icons.Default.PersonOutline, contentDescription = null)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        onValidar(nombre, apellido)
+                    }
+                ) {
+                    Text("Ingresar")
                 }
             }
-        )
+        }
     }
 }
 
 @Preview(showSystemUi = true)
 @Composable
-fun DefaultPreview() {
-    LoginScreen { _, _ -> true }
+fun LoginScreenPreview() {
+    MaterialTheme {
+        LoginScreen { _, _ -> }
+    }
 }
