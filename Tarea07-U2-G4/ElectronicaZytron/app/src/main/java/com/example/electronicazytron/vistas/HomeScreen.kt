@@ -57,7 +57,7 @@ private fun HomeContent(
         )
 
         Text(
-            text = "${stringResource(id = R.string.Gestion)}",
+            stringResource(id = R.string.Gestion),
             fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 32.dp)
