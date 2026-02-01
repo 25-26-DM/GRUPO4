@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.electronicazytron.model.entities.Producto
-import com.example.electronicazytron.viewModel.ProductoViewModel
+import com.example.electronicazytron.viewModel.ProductViewModel
 
 /* -------------------------
    VisualTransformation Fecha
@@ -55,7 +55,7 @@ private class DateVisualTransformation : VisualTransformation {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InsertProductScreen(
-    productoViewModel: ProductoViewModel,
+    productoViewModel: ProductViewModel,
     navController: NavController
 ) {
     var codigo by remember { mutableStateOf("") }
@@ -228,7 +228,7 @@ fun InsertProductScreen(
 @Composable
 fun InsertProductScreenPreview() {
     InsertProductScreen(
-        productoViewModel = ProductoViewModel(),
+        productoViewModel = ProductViewModel(),
         navController = rememberNavController()
     )
 }

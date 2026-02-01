@@ -7,7 +7,7 @@ import com.example.electronicazytron.model.repository.ProductoRepository
 
 //clase intermedia entre la vista y la entidad usada para representar los diferentes metodos que se pueden usar
 // viewModel() Un ViewModel es una clase donde manejas logica de negocio y estado de tu UI, separado de la UI misma.
-class ProductoViewModel : ViewModel() {
+class ProductViewModel : ViewModel() {
     //inicializacion del repositorio de producto para acceder a sus metodos, envuelta en private para que no sea accedido
     private val repository = ProductoRepository()
 

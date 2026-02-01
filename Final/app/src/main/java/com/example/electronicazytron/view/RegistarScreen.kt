@@ -3,40 +3,95 @@ package com.example.electronicazytron.view
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonOutline
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.example.electronicazytron.model.entities.Usuario
-import com.example.electronicazytron.viewModel.UsuarioViewModel
+import com.example.electronicazytron.viewModel.UserViewModel // Asegúrate de importar tu ViewModel correcto
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun RegistrarScreen(
-    userViewModel: UsuarioViewModel,
+    userViewModel: UserViewModel,
     navController: NavController
 ) {
-    Scaffold {
-        RegistrarContent(userViewModel, navController)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Volver al Inicio") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Regresar"
+                        )
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        Box(modifier = Modifier.padding(innerPadding)) {
+            RegistrarContent(
+                onRegistrar = { nombre, apellido, password ->
+                    // Llamamos al ViewModel con los 3 datos
+                    userViewModel.registrar(nombre, apellido, password)
+
+                    navController.navigate("login") {
+                        popUpTo("insertUser") { inclusive = true }
+                    }
+                }
+            )
+        }
     }
 }
 
 @Composable
-private fun RegistrarContent(
-    userViewModel: UsuarioViewModel,
-    navController: NavController
+fun RegistrarContent(
+    onRegistrar: (String, String, String) -> Unit
 ) {
     var nombre by remember { mutableStateOf("") }
     var apellido by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    var passwordVisible by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // Controladores de Foco (para saltar de un campo a otro)
+    val apellidoFocusRequester = remember { FocusRequester() }
+    val passwordFocusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+
+    fun validarYRegistrar() {
+        focusManager.clearFocus()
+
+        if (nombre.isBlank() || apellido.isBlank() || password.isBlank()) {
+            errorMessage = "Todos los campos son obligatorios"
+            return
+        }
+
+        onRegistrar(nombre, apellido, password)
+    }
 
     Column(
         modifier = Modifier
@@ -61,55 +116,84 @@ private fun RegistrarContent(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
+                // 1. CAMPO NOMBRE
                 OutlinedTextField(
                     value = nombre,
-                    onValueChange = { nombre = it },
+                    onValueChange = { nombre = it; errorMessage = null },
                     label = { Text("Nombre") },
-                    leadingIcon = {
-                        Icon(Icons.Default.Person, contentDescription = null)
-                    },
-                    modifier = Modifier.fillMaxWidth()
+                    leadingIcon = { Icon(Icons.Default.Person, null) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(
+                        onNext = { apellidoFocusRequester.requestFocus() }
+                    )
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
+                // 2. CAMPO APELLIDO
                 OutlinedTextField(
                     value = apellido,
-                    onValueChange = { apellido = it },
+                    onValueChange = { apellido = it; errorMessage = null },
                     label = { Text("Apellido") },
-                    leadingIcon = {
-                        Icon(Icons.Default.PersonOutline, contentDescription = null)
+                    leadingIcon = { Icon(Icons.Default.PersonOutline, null) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(apellidoFocusRequester),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(
+                        onNext = { passwordFocusRequester.requestFocus() }
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // 3. CAMPO CONTRASEÑA
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it; errorMessage = null },
+                    label = { Text("Contraseña") },
+                    leadingIcon = { Icon(Icons.Default.Lock, null) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(passwordFocusRequester),
+                    singleLine = true,
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(imageVector = image, contentDescription = null)
+                        }
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { validarYRegistrar() }
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Button(
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        userViewModel.insert(
-                            Usuario(nombre, apellido)
-                        )
-                        navController.navigate("login") {
-                            popUpTo("insertUser") { inclusive = true }
-                        }
-                    }
+                    onClick = { validarYRegistrar() }
                 ) {
                     Text("Registrar")
                 }
+
+                if (errorMessage != null) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = errorMessage!!,
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 14.sp
+                    )
+                }
             }
         }
-    }
-}
-
-@Preview(showSystemUi = true)
-@Composable
-fun RegistrarScreenPreview() {
-    val navController = rememberNavController()
-    val viewModel = UsuarioViewModel()
-
-    MaterialTheme {
-        RegistrarScreen(viewModel, navController)
     }
 }

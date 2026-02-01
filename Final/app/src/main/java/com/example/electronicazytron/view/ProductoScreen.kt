@@ -20,12 +20,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.electronicazytron.model.entities.Producto
-import com.example.electronicazytron.viewModel.ProductoViewModel
+import com.example.electronicazytron.viewModel.ProductViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductScreen(
-    productoViewModel: ProductoViewModel = viewModel(),
+    productoViewModel: ProductViewModel = viewModel(),
     navController: NavController,
     nombreUsuario: String = "",
     password: String = "",

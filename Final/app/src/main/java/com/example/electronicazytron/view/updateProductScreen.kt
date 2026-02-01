@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.electronicazytron.model.entities.Producto
-import com.example.electronicazytron.viewModel.ProductoViewModel
+import com.example.electronicazytron.viewModel.ProductViewModel
 
 // ----------------------
 // VisualTransformation Fecha
@@ -61,7 +61,7 @@ private class DateVisualTransformation : VisualTransformation {
 @Composable
 fun UpdateProductScreen(
     codigo: String,
-    productoViewModel: ProductoViewModel,
+    productoViewModel: ProductViewModel,
     navController: NavController
 ) {
     val producto = productoViewModel.productos.find { it.codigo == codigo }
