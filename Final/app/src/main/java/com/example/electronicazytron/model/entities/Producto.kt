@@ -1,11 +1,17 @@
 package com.example.electronicazytron.model.entities
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
+@Entity(tableName= "productos")
 //clase principal del objeto producto
-class Producto(
-    var codigo: String,
-    var descripcion: String,
+data class Producto(
+
+    @PrimaryKey val codigo: String,
+    val descripcion: String,
     var fecha_fab: String,
-    var costo: Number,
-    var disponibilidad: Int
+    var costo: Double,
+    var disponibilidad: Int,
+    var imagenUri: String = "",
+    var eliminado: Boolean = false
 )

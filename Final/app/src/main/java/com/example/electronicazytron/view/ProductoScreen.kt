@@ -1,5 +1,6 @@
 package com.example.electronicazytron.view
-
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
 import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -42,18 +43,10 @@ fun ProductScreen(
             TopAppBar(
                 title = { Text("Productos") },
                 actions = {
-
-                    // ➕ Agregar producto
-                    IconButton(onClick = {
-                        navController.navigate("insertProduct")
-                    }) {
+                    IconButton(onClick = { navController.navigate("insertProduct") }) {
                         Icon(Icons.Default.Add, contentDescription = "Agregar")
                     }
-
-                    // 🚪 Salir (muestra diálogo)
-                    IconButton(onClick = {
-                        showLogoutDialog = true
-                    }) {
+                    IconButton(onClick = { showLogoutDialog = true }) {
                         Icon(Icons.Default.ExitToApp, contentDescription = "Cerrar sesión")
                     }
                 }
@@ -61,8 +54,7 @@ fun ProductScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            
-            // Tarjeta de información de sesión
+
             if (nombreUsuario.isNotEmpty() || password.isNotEmpty() || hash.isNotEmpty()) {
                 Card(
                     modifier = Modifier
@@ -79,8 +71,7 @@ fun ProductScreen(
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        
-                        // Campo para mostrar el nombre de usuario
+
                         if (nombreUsuario.isNotEmpty()) {
                             OutlinedTextField(
                                 value = nombreUsuario,
@@ -93,20 +84,20 @@ fun ProductScreen(
                         }
 
                         if (password.isNotEmpty()) {
-                             Text(text = "Contraseña: $password", style = MaterialTheme.typography.bodyMedium)
+                            Text("Contraseña: $password", style = MaterialTheme.typography.bodyMedium)
                         }
                         if (hash.isNotEmpty()) {
-                             Text(text = "Hash: $hash", style = MaterialTheme.typography.bodySmall)
+                            Text("Hash: $hash", style = MaterialTheme.typography.bodySmall)
                         }
                     }
                 }
             }
-            
+
             ProductContent(
                 productos = productoViewModel.productos,
                 modifier = Modifier.fillMaxSize(),
                 onUpdate = { navController.navigate("updateProduct/$it") },
-                onDelete = { productoViewModel.delete(it) }
+                onDelete = { codigo -> productoViewModel.deleteVisual(codigo) } // ✅ SOLO 1 eliminar
             )
         }
     }
@@ -114,15 +105,8 @@ fun ProductScreen(
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            title = {
-                Text(
-                    text = "Cerrar sesión",
-                    style = MaterialTheme.typography.titleLarge
-                )
-            },
-            text = {
-                Text("¿Estás seguro de que deseas cerrar sesión?")
-            },
+            title = { Text("Cerrar sesión", style = MaterialTheme.typography.titleLarge) },
+            text = { Text("¿Estás seguro de que deseas cerrar sesión?") },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -131,16 +115,10 @@ fun ProductScreen(
                             popUpTo("productos") { inclusive = true }
                         }
                     }
-                ) {
-                    Text("Sí, salir")
-                }
+                ) { Text("Sí, salir") }
             },
             dismissButton = {
-                TextButton(
-                    onClick = { showLogoutDialog = false }
-                ) {
-                    Text("Cancelar")
-                }
+                TextButton(onClick = { showLogoutDialog = false }) { Text("Cancelar") }
             }
         )
     }
@@ -157,6 +135,7 @@ fun ProductContent(
     val pageSize = 5
     val startIndex = currentPage * pageSize
     val endIndex = minOf(startIndex + pageSize, productos.size)
+
     val paginatedProducts =
         if (startIndex < endIndex) productos.subList(startIndex, endIndex) else emptyList()
 
@@ -192,6 +171,7 @@ fun ProductCard(
     onDelete: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier
@@ -200,6 +180,17 @@ fun ProductCard(
         elevation = CardDefaults.cardElevation(6.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+
+            AsyncImage(
+                model = producto.imagenUri,
+                contentDescription = "Imagen del producto",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp),
+                contentScale = ContentScale.Crop
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(
                 text = producto.descripcion,
@@ -225,11 +216,32 @@ fun ProductCard(
                 IconButton(onClick = { onUpdate(producto.codigo) }) {
                     Icon(Icons.Default.Edit, contentDescription = "Editar")
                 }
-                IconButton(onClick = { onDelete(producto.codigo) }) {
+                IconButton(onClick = { showDeleteDialog = true }) {
                     Icon(Icons.Default.Delete, contentDescription = "Eliminar")
                 }
             }
         }
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Eliminar producto") },
+            text = { Text("¿Deseas eliminar visualmente el producto ${producto.codigo}?") },
+            confirmButton = {
+                Button(onClick = {
+                    onDelete(producto.codigo)
+                    showDeleteDialog = false
+                }) {
+                    Text("Eliminar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }
 
@@ -247,15 +259,11 @@ fun PaginationControls(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Button(onClick = onPrevious, enabled = currentPage > 0) {
-            Text("Anterior")
-        }
+        Button(onClick = onPrevious, enabled = currentPage > 0) { Text("Anterior") }
         Spacer(modifier = Modifier.width(16.dp))
         Text("Página ${currentPage + 1}")
         Spacer(modifier = Modifier.width(16.dp))
-        Button(onClick = onNext, enabled = canGoNext) {
-            Text("Siguiente")
-        }
+        Button(onClick = onNext, enabled = canGoNext) { Text("Siguiente") }
     }
 }
 
@@ -268,8 +276,6 @@ fun ProductScreenPreview() {
         Producto("P003", "Teclado Redragon", "2023-10-05", 50.0, 30)
     )
 
-    // Preview with fake context
-    // This is just for preview, navController is not functional here
     MaterialTheme {
         ProductContent(
             productos = productosFake,

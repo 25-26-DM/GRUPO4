@@ -1,44 +1,60 @@
 package com.example.electronicazytron.viewModel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
 import androidx.compose.runtime.mutableStateListOf
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.electronicazytron.model.entities.Producto
 import com.example.electronicazytron.model.repository.ProductoRepository
+import com.example.electronicazytron.auth.AppDatabase
+import kotlinx.coroutines.launch
 
-//clase intermedia entre la vista y la entidad usada para representar los diferentes metodos que se pueden usar
-// viewModel() Un ViewModel es una clase donde manejas logica de negocio y estado de tu UI, separado de la UI misma.
-class ProductViewModel : ViewModel() {
-    //inicializacion del repositorio de producto para acceder a sus metodos, envuelta en private para que no sea accedido
-    private val repository = ProductoRepository()
-
-    // Lista observable para la UI, es aquella lista que se muestra en la vista
+class ProductViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository = ProductoRepository(
+        AppDatabase.getDatabase(application).productoDao()
+    )
     var productos = mutableStateListOf<Producto>()
         private set
 
-    // Cargar productos desde el repositorio usando el metodo listar, ademas se encarga de refrescar la vista cuando detecta cambios
-    fun cargarProductos() {
+    init{
+        viewModelScope.launch {
+            repository.seedIfEmpty()
+            cargarProductos()
+        }
+    }
+
+    private suspend fun refrescar(){
         productos.clear()
         productos.addAll(repository.listar())
     }
+     fun cargarProductos() {
+        viewModelScope.launch {
+            refrescar()
+        }
+     }
 
-    fun find(codigo: String): Producto? {
-        return repository.find(codigo)
+    fun find(codigo: String, onResult: (Producto?) -> Unit) {
+        viewModelScope.launch {
+            onResult(repository.find(codigo))
+        }
+    }
+    fun update(producto: Producto) {
+        viewModelScope.launch {
+            repository.update(producto)
+            refrescar()
+        }
     }
 
-    // Actualizar un producto en el repositorio
-    fun update(codigo: String, producto: Producto) {
-        repository.update(codigo, producto)
-        cargarProductos() // refrescar la lista observable
+    fun deleteVisual(codigo: String) {
+        viewModelScope.launch {
+            repository.softDelete(codigo)
+            refrescar()
+        }
     }
-
-    fun delete(codigo: String){
-        repository.delete(codigo)
-        cargarProductos()
+    fun insert(producto: Producto) {
+        viewModelScope.launch {
+            repository.agregar(producto)
+            refrescar()
+        }
     }
-
-    fun insert(producto: Producto){
-        repository.agregar(producto)
-        cargarProductos()
-    }
-    //aqui se puede agregar la funcionalidad que se desea implementar en la vista o nuevos metodos que puedan complementar a la vista
 }

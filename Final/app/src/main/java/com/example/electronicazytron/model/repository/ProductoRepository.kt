@@ -1,85 +1,45 @@
 package com.example.electronicazytron.model.repository
 
 import com.example.electronicazytron.model.entities.Producto
+import com.example.electronicazytron.model.entities.ProductoDao
 
-//clase producto usada para implementar las diferentes acciones que puede realizar el objeto
-//en este caso esta la inicializaicion de la lista de objetos y el crud del objeto
-class ProductoRepository {
-//usando mutableListOf se puede crear listas dinamicas las cuales pueden ser modificadas y almacenar el estado de la lista
-    // optimizando la vista en tiempo real de la lista, evita que se tenga que crear metodos auxiliares para refrescar pantallas que contengan la lista implementada
-    private val productos = mutableListOf(
-    Producto(
-        codigo = "P001",
-        descripcion = "Laptop Lenovo IdeaPad 3",
-        fecha_fab = "2024-01-15",
-        costo = 750.00,
-        disponibilidad = 10
-    ),
-    Producto(
-        codigo = "P002",
-        descripcion = "Mouse inalámbrico Logitech M185",
-        fecha_fab = "2023-11-20",
-        costo = 18.50,
-        disponibilidad = 45
-    ),
-    Producto(
-        codigo = "P003",
-        descripcion = "Teclado mecánico Redragon Kumara",
-        fecha_fab = "2024-02-10",
-        costo = 65.99,
-        disponibilidad = 25
-    ),
-    Producto(
-        codigo = "P004",
-        descripcion = "Monitor Samsung 24\" FHD",
-        fecha_fab = "2023-12-05",
-        costo = 180.00,
-        disponibilidad = 12
-    ),
-    Producto(
-        codigo = "P005",
-        descripcion = "Disco SSD Kingston 1TB",
-        fecha_fab = "2024-03-01",
-        costo = 95.75,
-        disponibilidad = 30
-    ),
-    Producto(
-        codigo = "P006",
-        descripcion = "Audífonos Bluetooth JBL Tune 510BT",
-        fecha_fab = "2024-01-28",
-        costo = 48.90,
-        disponibilidad = 20
-    )
-    )
-    //funcion para agregar nuevos productos
-    fun agregar(producto: Producto){
-        productos.add(producto)
+class ProductoRepository(private val productoDao: ProductoDao) {
+
+    suspend fun agregar(producto: Producto) {
+        productoDao.insertar(producto)
     }
-    //funcion para listar los productos
-    fun listar(): List<Producto>{
-        return  productos;
+
+    suspend fun listar(): List<Producto> {
+        return productoDao.listar()
     }
-    //funcion para buscar el producto, se usa el metodo find seguido de it el cual recorre la lista de productos y el atributo a buscar
-    fun find(codigo: String): Producto?{
-        return productos.find{it.codigo==codigo}
+
+    suspend fun find(codigo: String): Producto? {
+        return productoDao.buscarPorCodigo(codigo)
     }
-    //metodo para modificar una lista, como estan haciendo referencia a la misma lista es posible unicamente modificar el objeto encontrado
-    //y se actualiza automaticamente en la lista generada
-    fun update(codigo: String,producto: Producto){
-        var obj = find(codigo)
-        if (obj!=null){
-            obj.costo = producto.costo
-            obj.disponibilidad=producto.disponibilidad
-            obj.descripcion=producto.descripcion
-            obj.fecha_fab=producto.fecha_fab
-        }
+
+    suspend fun update(producto: Producto) {
+        productoDao.actualizar(producto)
     }
-    //metodo para eliminar un elemento de la lista
-    fun delete(codigo: String) {
-        val producto = productos.find { it.codigo == codigo}
-        if (producto!=null){
-            productos.remove(producto)
-        }
+
+    suspend fun softDelete(codigo: String) {
+        productoDao.marcarEliminado(codigo)
     }
-    //aqui se puede agregar los metodos que un producto puede hacer, o mas extenciones del crud del producto
+
+    suspend fun count(): Int = productoDao.count()
+
+    suspend fun seedIfEmpty(){
+        if(productoDao.count() > 0) return
+
+        val seed = listOf(
+            Producto("P001","Laptop Lenovo IdeaPad 3","2024-01-15",750.0,10,"https://picsum.photos/seed/P001/400/400", eliminado = false),
+            Producto("P002","Mouse inalámbrico Logitech M185","2023-11-20",18.5,45,"https://picsum.photos/seed/P002/400/400", eliminado = false),
+            Producto("P003","Teclado mecánico Redragon Kumara","2024-02-10",65.99,25,"https://picsum.photos/seed/P003/400/400", eliminado = false),
+            Producto("P004","Monitor Samsung 24 FHD","2023-12-05",180.0,12,"https://picsum.photos/seed/P004/400/400", eliminado = false),
+            Producto("P005","Disco SSD Kingston 1TB","2024-03-01",95.75,30,"https://picsum.photos/seed/P005/400/400", eliminado = false),
+            Producto("P006","Audífonos Bluetooth JBL Tune 510BT","2024-01-28",48.9,20,"https://picsum.photos/seed/P006/400/400", eliminado = false)
+        )
+
+        seed.forEach { productoDao.insertar(it) }
+
+    }
 }

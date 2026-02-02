@@ -1,56 +1,26 @@
 package com.example.electronicazytron.vista
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.*
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.electronicazytron.model.entities.Producto
+import com.example.electronicazytron.ui.components.DatePickerField
 import com.example.electronicazytron.viewModel.ProductViewModel
-
-/* -------------------------
-   VisualTransformation Fecha
--------------------------- */
-private class DateVisualTransformation : VisualTransformation {
-    override fun filter(text: AnnotatedString): TransformedText {
-        val trimmed = text.text.take(8)
-        val out = buildString {
-            for (i in trimmed.indices) {
-                append(trimmed[i])
-                if (i == 3 || i == 5) append("-")
-            }
-        }
-
-        val offsetMapping = object : OffsetMapping {
-            override fun originalToTransformed(offset: Int): Int =
-                when {
-                    offset <= 4 -> offset
-                    offset <= 6 -> offset + 1
-                    else -> offset + 2
-                }
-
-            override fun transformedToOriginal(offset: Int): Int =
-                when {
-                    offset <= 4 -> offset
-                    offset <= 7 -> offset - 1
-                    else -> offset - 2
-                }
-        }
-
-        return TransformedText(AnnotatedString(out), offsetMapping)
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,8 +33,15 @@ fun InsertProductScreen(
     var fechaFab by remember { mutableStateOf("") }
     var costo by remember { mutableStateOf("") }
     var disponibilidad by remember { mutableStateOf("") }
+    var imagenUri by remember { mutableStateOf("") }
 
     var showDialog by remember { mutableStateOf(false) }
+
+    val focusManager = LocalFocusManager.current
+    val frDescripcion = remember { FocusRequester() }
+    val frCosto = remember { FocusRequester() }
+    val frDispon = remember { FocusRequester() }
+    val frImagen = remember { FocusRequester() }
 
     Scaffold(
         topBar = {
@@ -72,13 +49,12 @@ fun InsertProductScreen(
                 title = { Text("Nuevo Producto") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
                     }
                 }
             )
         }
     ) { padding ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -86,7 +62,6 @@ fun InsertProductScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.cardElevation(8.dp)
@@ -96,18 +71,22 @@ fun InsertProductScreen(
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
 
-                    Text(
-                        text = "Datos del producto",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text("Datos del producto", fontSize = 20.sp)
 
                     OutlinedTextField(
                         value = codigo,
                         onValueChange = { codigo = it },
                         label = { Text("Código") },
                         leadingIcon = { Icon(Icons.Default.QrCode, null) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Next,
+                            keyboardType = KeyboardType.Text
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = { frDescripcion.requestFocus() }
+                        )
                     )
 
                     OutlinedTextField(
@@ -115,45 +94,80 @@ fun InsertProductScreen(
                         onValueChange = { descripcion = it },
                         label = { Text("Descripción") },
                         leadingIcon = { Icon(Icons.Default.Description, null) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(frDescripcion),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Next,
+                            keyboardType = KeyboardType.Text
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = { frCosto.requestFocus() }
+                        )
                     )
 
-                    OutlinedTextField(
+                    DatePickerField(
+                        label = "Fecha fabricación (yyyy-MM-dd)",
                         value = fechaFab,
-                        onValueChange = {
-                            val digits = it.filter { c -> c.isDigit() }
-                            if (digits.length <= 8) fechaFab = digits
-                        },
-                        label = { Text("Fecha fabricación (yyyy-MM-dd)") },
+                        onDateSelected = { fechaFab = it },
                         leadingIcon = { Icon(Icons.Default.DateRange, null) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        visualTransformation = DateVisualTransformation(),
                         modifier = Modifier.fillMaxWidth()
                     )
 
                     OutlinedTextField(
                         value = costo,
-                        onValueChange = {
-                            if (it.matches(Regex("^\\d*\\.?\\d*$"))) costo = it
-                        },
+                        onValueChange = { if (it.matches(Regex("^\\d*\\.?\\d*$"))) costo = it },
                         label = { Text("Costo") },
                         leadingIcon = { Icon(Icons.Default.AttachMoney, null) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(frCosto),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Next,
+                            keyboardType = KeyboardType.Decimal
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = { frDispon.requestFocus() }
+                        )
                     )
 
                     OutlinedTextField(
                         value = disponibilidad,
-                        onValueChange = {
-                            if (it.matches(Regex("^\\d*$"))) disponibilidad = it
-                        },
+                        onValueChange = { if (it.matches(Regex("^\\d*$"))) disponibilidad = it },
                         label = { Text("Disponibilidad") },
                         leadingIcon = { Icon(Icons.Default.Inventory, null) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(frDispon),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Next,
+                            keyboardType = KeyboardType.Number
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = { frImagen.requestFocus() }
+                        )
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = imagenUri,
+                        onValueChange = { imagenUri = it },
+                        label = { Text("URL Imagen (opcional)") },
+                        leadingIcon = { Icon(Icons.Default.Link, null) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(frImagen),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Done,
+                            keyboardType = KeyboardType.Uri
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { focusManager.clearFocus() }
+                        )
+                    )
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -162,73 +176,53 @@ fun InsertProductScreen(
                         OutlinedButton(
                             modifier = Modifier.weight(1f),
                             onClick = { navController.popBackStack() }
-                        ) {
-                            Text("Cancelar")
-                        }
+                        ) { Text("Cancelar") }
 
                         Button(
                             modifier = Modifier.weight(1f),
                             onClick = { showDialog = true },
-                            enabled = codigo.isNotBlank() && descripcion.isNotBlank()
-                        ) {
-                            Text("Guardar")
-                        }
+                            enabled = codigo.isNotBlank()
+                                    && descripcion.isNotBlank()
+                                    && fechaFab.isNotBlank()
+                        ) { Text("Guardar") }
                     }
                 }
             }
         }
     }
 
-    /* -------------------------
-       Diálogo de confirmación
-    -------------------------- */
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
+            title = { Text("Confirmar producto") },
+            text = { Text("¿Deseas guardar este producto?") },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        val formattedDate =
-                            DateVisualTransformation()
-                                .filter(AnnotatedString(fechaFab))
-                                .text
-                                .toString()
+                TextButton(onClick = {
+                    val urlFinal =
+                        if (imagenUri.isBlank()) "https://picsum.photos/seed/${codigo.trim()}/400/400"
+                        else imagenUri.trim()
 
-                        productoViewModel.insert(
-                            Producto(
-                                codigo = codigo,
-                                descripcion = descripcion,
-                                fecha_fab = formattedDate,
-                                costo = costo.toDoubleOrNull() ?: 0.0,
-                                disponibilidad = disponibilidad.toIntOrNull() ?: 0
-                            )
+                    productoViewModel.insert(
+                        Producto(
+                            codigo = codigo.trim(),
+                            descripcion = descripcion.trim(),
+                            fecha_fab = fechaFab.trim(),
+                            costo = costo.toDoubleOrNull() ?: 0.0,
+                            disponibilidad = disponibilidad.toIntOrNull() ?: 0,
+                            imagenUri = urlFinal,
+                            eliminado = false
                         )
+                    )
 
-                        showDialog = false
-                        navController.navigate("productos") {
-                            popUpTo("insertProduct") { inclusive = true }
-                        }
+                    showDialog = false
+                    navController.navigate("productos") {
+                        popUpTo("insertProduct") { inclusive = true }
                     }
-                ) {
-                    Text("Confirmar")
-                }
+                }) { Text("Confirmar") }
             },
             dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text("Cancelar")
-                }
-            },
-            title = { Text("Confirmar producto") },
-            text = { Text("¿Deseas guardar este producto?") }
+                TextButton(onClick = { showDialog = false }) { Text("Cancelar") }
+            }
         )
     }
-}
-
-@Preview(showSystemUi = true)
-@Composable
-fun InsertProductScreenPreview() {
-    InsertProductScreen(
-        productoViewModel = ProductViewModel(),
-        navController = rememberNavController()
-    )
 }

@@ -33,6 +33,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = "11"
@@ -55,6 +56,10 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
 
     implementation("androidx.navigation:navigation-compose:2.7.7")
+
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation(libs.androidx.compose.ui.text)
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
     // Room
     val room_version = "2.6.1"
