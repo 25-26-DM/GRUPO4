@@ -12,7 +12,7 @@ import com.example.electronicazytron.view.HomeScreen
 import com.example.electronicazytron.view.ProductScreen
 import com.example.electronicazytron.view.RegistrarScreen
 import com.example.electronicazytron.view.UpdateProductScreen
-import com.example.electronicazytron.vista.InsertProductScreen
+import com.example.electronicazytron.view.InsertProductScreen
 import com.example.electronicazytron.vistas.*
 import kotlinx.coroutines.delay
 

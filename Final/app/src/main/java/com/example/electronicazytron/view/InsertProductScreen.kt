@@ -1,8 +1,17 @@
-package com.example.electronicazytron.vista
+package com.example.electronicazytron.view
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -12,15 +21,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.example.electronicazytron.model.entities.Producto
 import com.example.electronicazytron.ui.components.DatePickerField
+import com.example.electronicazytron.utils.CameraUtils
 import com.example.electronicazytron.viewModel.ProductViewModel
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,20 +43,47 @@ fun InsertProductScreen(
     productoViewModel: ProductViewModel,
     navController: NavController
 ) {
+    val context = LocalContext.current
     var codigo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var fechaFab by remember { mutableStateOf("") }
     var costo by remember { mutableStateOf("") }
     var disponibilidad by remember { mutableStateOf("") }
-    var imagenUri by remember { mutableStateOf("") }
+    
+    // Obtenemos el estado de la imagen desde el ViewModel
+    val imagenUriFromVM = productoViewModel.imagenUriState
 
     var showDialog by remember { mutableStateOf(false) }
+    var capturedFile by remember { mutableStateOf<File?>(null) }
 
     val focusManager = LocalFocusManager.current
     val frDescripcion = remember { FocusRequester() }
     val frCosto = remember { FocusRequester() }
     val frDispon = remember { FocusRequester() }
-    val frImagen = remember { FocusRequester() }
+
+    // Launcher para tomar la foto
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && capturedFile != null) {
+            // Inicia la simulación de subida
+            productoViewModel.uploadImage(capturedFile!!)
+        }
+    }
+
+    // Launcher para solicitar permisos
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val file = CameraUtils.createTempImageFile(context)
+            capturedFile = file
+            val uri = CameraUtils.getUriForFile(context, file)
+            cameraLauncher.launch(uri)
+        } else {
+            Toast.makeText(context, "Permiso de cámara denegado", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -59,7 +101,8 @@ fun InsertProductScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Card(
@@ -70,8 +113,64 @@ fun InsertProductScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-
                     Text("Datos del producto", fontSize = 20.sp)
+
+                    // Sección de Imagen
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (imagenUriFromVM.isNotEmpty()) {
+                            Image(
+                                painter = rememberAsyncImagePainter(imagenUriFromVM),
+                                contentDescription = "Imagen del producto",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            IconButton(
+                                onClick = {
+                                    val permissionCheckResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                                    if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                                        val file = CameraUtils.createTempImageFile(context)
+                                        capturedFile = file
+                                        val uri = CameraUtils.getUriForFile(context, file)
+                                        cameraLauncher.launch(uri)
+                                    } else {
+                                        permissionLauncher.launch(Manifest.permission.CAMERA)
+                                    }
+                                },
+                                modifier = Modifier.size(80.dp)
+                            ) {
+                                Icon(Icons.Default.AddAPhoto, contentDescription = "Tomar Foto", modifier = Modifier.size(48.dp))
+                            }
+                        }
+                        
+                        if (productoViewModel.isUploading) {
+                            CircularProgressIndicator()
+                        }
+                    }
+
+                    if (imagenUriFromVM.isNotEmpty()) {
+                        TextButton(
+                            onClick = {
+                                val permissionCheckResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                                if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                                    val file = CameraUtils.createTempImageFile(context)
+                                    capturedFile = file
+                                    val uri = CameraUtils.getUriForFile(context, file)
+                                    cameraLauncher.launch(uri)
+                                } else {
+                                    permissionLauncher.launch(Manifest.permission.CAMERA)
+                                }
+                            },
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        ) {
+                            Text("Cambiar Foto")
+                        }
+                    }
 
                     OutlinedTextField(
                         value = codigo,
@@ -143,26 +242,8 @@ fun InsertProductScreen(
                             .focusRequester(frDispon),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
-                            imeAction = ImeAction.Next,
-                            keyboardType = KeyboardType.Number
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onNext = { frImagen.requestFocus() }
-                        )
-                    )
-
-                    OutlinedTextField(
-                        value = imagenUri,
-                        onValueChange = { imagenUri = it },
-                        label = { Text("URL Imagen (opcional)") },
-                        leadingIcon = { Icon(Icons.Default.Link, null) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(frImagen),
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
                             imeAction = ImeAction.Done,
-                            keyboardType = KeyboardType.Uri
+                            keyboardType = KeyboardType.Number
                         ),
                         keyboardActions = KeyboardActions(
                             onDone = { focusManager.clearFocus() }
@@ -184,6 +265,7 @@ fun InsertProductScreen(
                             enabled = codigo.isNotBlank()
                                     && descripcion.isNotBlank()
                                     && fechaFab.isNotBlank()
+                                    && !productoViewModel.isUploading
                         ) { Text("Guardar") }
                     }
                 }
@@ -198,10 +280,6 @@ fun InsertProductScreen(
             text = { Text("¿Deseas guardar este producto?") },
             confirmButton = {
                 TextButton(onClick = {
-                    val urlFinal =
-                        if (imagenUri.isBlank()) "https://picsum.photos/seed/${codigo.trim()}/400/400"
-                        else imagenUri.trim()
-
                     productoViewModel.insert(
                         Producto(
                             codigo = codigo.trim(),
@@ -209,7 +287,7 @@ fun InsertProductScreen(
                             fecha_fab = fechaFab.trim(),
                             costo = costo.toDoubleOrNull() ?: 0.0,
                             disponibilidad = disponibilidad.toIntOrNull() ?: 0,
-                            imagenUri = urlFinal,
+                            imagenUri = imagenUriFromVM, // Se usa la URI guardada en el VM
                             eliminado = false
                         )
                     )

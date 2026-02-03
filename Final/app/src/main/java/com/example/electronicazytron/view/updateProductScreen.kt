@@ -1,5 +1,8 @@
 package com.example.electronicazytron.view
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
@@ -8,6 +11,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import coil.compose.rememberAsyncImagePainter
+import java.io.File
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -51,6 +60,42 @@ fun UpdateProductScreen(
     var costo by remember { mutableStateOf(prod.costo.toString()) }
     var disponibilidad by remember { mutableStateOf(prod.disponibilidad.toString()) }
     var imagenUri by remember { mutableStateOf(prod.imagenUri) }
+    val context = LocalContext.current
+    // Observamos estado global de imagen (se actualiza tras subir)
+    val imagenUriFromVM = productoViewModel.imagenUriState
+
+    var capturedFile by remember { mutableStateOf<File?>(null) }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && capturedFile != null) {
+            productoViewModel.uploadImage(capturedFile!!)
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val file = com.example.electronicazytron.utils.CameraUtils.createTempImageFile(context)
+            capturedFile = file
+            val uri: Uri = com.example.electronicazytron.utils.CameraUtils.getUriForFile(context, file)
+            cameraLauncher.launch(uri)
+        }
+    }
+
+    // Inicializamos el estado global de imagen con la imagen actual del producto
+    LaunchedEffect(prod) {
+        productoViewModel.updateImagenUri(prod.imagenUri)
+    }
+
+    // Si la VM cambia la URI (tras subir), actualizamos la URI local para mostrarla
+    LaunchedEffect(imagenUriFromVM) {
+        if (imagenUriFromVM.isNotEmpty()) {
+            imagenUri = imagenUriFromVM
+        }
+    }
 
     var showConfirmDialog by remember { mutableStateOf(false) }
 
@@ -88,14 +133,38 @@ fun UpdateProductScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                AsyncImage(
-                    model = imagenUri,
-                    contentDescription = "Imagen del producto",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp),
-                    contentScale = ContentScale.Crop
-                )
+                // Se muestra la imagen actual; si no hay, mostramos botón para tomar foto
+                if (imagenUri.isNotEmpty()) {
+                    AsyncImage(
+                        model = imagenUri,
+                        contentDescription = "Imagen del producto",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        IconButton(onClick = {
+                            val permissionCheck = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                            if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+                                val file = com.example.electronicazytron.utils.CameraUtils.createTempImageFile(context)
+                                capturedFile = file
+                                val uri: Uri = com.example.electronicazytron.utils.CameraUtils.getUriForFile(context, file)
+                                cameraLauncher.launch(uri)
+                            } else {
+                                permissionLauncher.launch(Manifest.permission.CAMERA)
+                            }
+                        }) {
+                            Icon(Icons.Default.AddAPhoto, contentDescription = "Tomar Foto", modifier = Modifier.size(48.dp))
+                        }
+                    }
+                }
 
                 OutlinedTextField(
                     value = imagenUri,
@@ -112,6 +181,24 @@ fun UpdateProductScreen(
                         onNext = { frDescripcion.requestFocus() }
                     )
                 )
+
+                // Botón para cambiar foto si ya existe imagen
+                if (imagenUri.isNotEmpty()) {
+                    TextButton(
+                        onClick = {
+                            val permissionCheck = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                            if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+                                val file = com.example.electronicazytron.utils.CameraUtils.createTempImageFile(context)
+                                capturedFile = file
+                                val uri: Uri = com.example.electronicazytron.utils.CameraUtils.getUriForFile(context, file)
+                                cameraLauncher.launch(uri)
+                            } else {
+                                permissionLauncher.launch(Manifest.permission.CAMERA)
+                            }
+                        },
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    ) { Text("Cambiar Foto") }
+                }
 
                 OutlinedTextField(
                     value = descripcion,
@@ -192,8 +279,15 @@ fun UpdateProductScreen(
 
                     Button(
                         modifier = Modifier.weight(1f),
-                        onClick = { showConfirmDialog = true }
-                    ) { Text("Actualizar") }
+                        onClick = { showConfirmDialog = true },
+                        enabled = !productoViewModel.isUploading
+                    ) {
+                        if (productoViewModel.isUploading) {
+                            CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                        } else {
+                            Text("Actualizar")
+                        }
+                    }
                 }
             }
         }
@@ -206,6 +300,10 @@ fun UpdateProductScreen(
             text = { Text("¿Deseas guardar los cambios del producto?") },
             confirmButton = {
                 Button(onClick = {
+                    // Si el ViewModel tiene una imagen cargada (remota o local), la usamos;
+                    // en caso contrario usamos el valor actual del campo `imagenUri`.
+                    val finalImagen = productoViewModel.imagenUriState.takeIf { it.isNotEmpty() } ?: imagenUri.trim()
+
                     productoViewModel.update(
                         Producto(
                             codigo = prod.codigo,
@@ -213,7 +311,7 @@ fun UpdateProductScreen(
                             fecha_fab = fechaFab,
                             costo = costo.toDoubleOrNull() ?: 0.0,
                             disponibilidad = disponibilidad.toIntOrNull() ?: 0,
-                            imagenUri = imagenUri.trim(),
+                            imagenUri = finalImagen,
                             eliminado = prod.eliminado
                         )
                     )

@@ -61,6 +61,9 @@ dependencies {
     implementation(libs.androidx.compose.ui.text)
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
+    // HTTP client for Cloudinary uploads
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+
     // Room
     val room_version = "2.6.1"
     implementation("androidx.room:room-runtime:$room_version")
