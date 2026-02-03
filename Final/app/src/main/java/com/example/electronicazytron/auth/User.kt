@@ -8,5 +8,6 @@ data class User(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val nombre: String,
     val apellido: String,
-    val password: String
+    val password: String,
+    var isSynced: Boolean = false // Bandera para saber si está sincronizado con la nube
 )

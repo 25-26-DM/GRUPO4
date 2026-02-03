@@ -13,5 +13,6 @@ data class Producto(
     var costo: Double,
     var disponibilidad: Int,
     var imagenUri: String = "",
-    var eliminado: Boolean = false
+    var eliminado: Boolean = false,
+    var isSynced: Boolean = false // Bandera para saber si está sincronizado con la nube
 )

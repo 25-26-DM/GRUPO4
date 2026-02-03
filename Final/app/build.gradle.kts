@@ -67,6 +67,9 @@ dependencies {
     implementation("androidx.room:room-ktx:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
 
+    // AWS SDK - Declaración directa y explícita
+    implementation("aws.sdk.kotlin:dynamodb:1.2.6")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

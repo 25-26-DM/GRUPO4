@@ -5,13 +5,13 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import com.example.electronicazytron.model.entities.Usuario
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UserDao {
     @Insert
     suspend fun insert(user: User)
+
 
     // ----------------------
     // R: READ (Leer / Consultar)
@@ -42,4 +42,14 @@ interface UserDao {
     // Opción extra: Borrar directamente por ID (útil para listas)
     @Query("DELETE FROM users WHERE id = :id")
     suspend fun deleteById(id: Int)
+
+    // --- Nuevo metodo para la sincronizacion
+    // este metodo devuelve todos los usuarios que no han sido sincronizados
+    @Query("SELECT * FROM users WHERE isSynced = 0")
+    suspend fun getUnsynced(): List<User>
+
+    // metodo para descargar de la nube
+    // Si el usuario ya existe por ID, actualiza sus datos; si no, lo crea.
+    @Insert(onConflict = androidx.room.OnConflictStrategy.REPLACE)
+    suspend fun insertOrUpdate(user: User)
 }
