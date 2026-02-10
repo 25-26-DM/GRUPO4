@@ -31,9 +31,9 @@ object DynamoDbClientFactory {
                 // CONFIGURACIÓN PARA LABORATORIO
                 credentialsProvider = StaticCredentialsProvider(
                     Credentials(
-                        accessKeyId = "",
-                        secretAccessKey = "",
-                        sessionToken = "" // ¡Obligatorio en labs!
+                        accessKeyId = "ASIAVE3FVN5P42ZM4WNB",
+                        secretAccessKey = "2xcMJ55kEegpxo7+WQh+0BV7ZJIoQz2cpvhL6fKf",
+                        sessionToken = "IQoJb3JpZ2luX2VjEN7//////////wEaCXVzLXdlc3QtMiJHMEUCIER9Y2dp4ohEPM/eBARQsdVO0YGAq76TOmcFiWVAfz5RAiEA1vJcShrDC7x/KG/zP7UCSg/gmbbjxG87D0TN+C4X5VIqqgIIp///////////ARABGgwzNTQwMTExNDgxMjciDAVB+q1JrHnGm1wJvyr+AeCrrf3uXxgTdpyTilp5yMI4godmow+hW7oXhsIK5bzLVLCtPIUxoEsVfqXU67+Otl5H00gJ2hZCqUR/rEqb7/hblmOGWVHXRQAaJ910FBj0s9SL0telqvFd0KxEg+xKdxXQMYjOue2xF7bs4E3zMZZhqCfHZmOSQ0uCzbk7iHx5e84PUzpeiJ4qxTZiwWk0UZRY+i787orGTt6osywJrPkh0um+6+tEbuN6fA0S/FE2BpN0TdPPp+T7+Fgd8xrl16Q1E1GRQw/sp+Rs6QhTMIoIFg9UtHlqN1kIRRuFC9dkwbhgcXq052HhSe2wrdYIU/3kjY9e+QSmIZ8nvKoMMJH0rMwGOp0B8e/Xb/m/OdjLni6GberUqFHi7NAaBGpeoa44H2PW0OBjpuU8og9PEPCrrJWsKhXpT63wcicCHvqJNbUoSzuy/eApnaXt8i2+Zgaucaxdug68BRCQOaDcSu2HpFRLPHUfz3DlKoCrRswhQx4oUBcFdA8yctGhs5w2KMIQV/0qNlvrC5EowOiIW2F1GLnHsHrBC3ndhP6w0o2uBzdHuA==" // ¡Obligatorio en labs!
                     )
                 )
             }

@@ -29,6 +29,19 @@ class UserRepository(private val userDao: UserDao) {
         userDao.insert(nuevoUsuario)
     }
 
+    // Devuelve el valor de lastAccess para un usuario (null si no existe o no tiene valor)
+    suspend fun obtenerLastAccess(nombre: String): String? {
+        val usuario = userDao.buscarPorNombre(nombre) ?: return null
+        return usuario.lastAccess
+    }
+
+    // Actualiza el campo lastAccess del usuario
+    suspend fun actualizarLastAccess(nombre: String, valor: String) {
+        val usuario = userDao.buscarPorNombre(nombre) ?: return
+        usuario.lastAccess = valor
+        userDao.update(usuario)
+    }
+
     // Valida encriptando la entrada y comparando hashes
     suspend fun login(nombre: String, passwordPlano: String): Boolean {
         val usuario = userDao.buscarPorNombre(nombre) ?: return false

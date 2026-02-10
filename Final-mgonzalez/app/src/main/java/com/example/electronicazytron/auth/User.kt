@@ -9,5 +9,6 @@ data class User(
     val nombre: String,
     val apellido: String,
     val password: String,
-    var isSynced: Boolean = false // Bandera para saber si está sincronizado con la nube
+    var isSynced: Boolean = false, // Bandera para saber si está sincronizado con la nube
+    var lastAccess: String? = null // Fecha/hora del último acceso (formato legible o null si nunca)
 )

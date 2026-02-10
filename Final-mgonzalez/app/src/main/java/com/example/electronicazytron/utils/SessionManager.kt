@@ -14,10 +14,15 @@ object SessionManager {
 
     private var horaInicioSesion: Long = 0
     private var ultimaInteraccion: Long = 0
+    private var nombreUsuarioActual: String? = null
 
     // Estado observable para cerrar la sesión
     private val _sesionExpirada = MutableStateFlow(false)
     val sesionExpirada = _sesionExpirada.asStateFlow()
+
+    // Estado observable para el usuario actualmente logeado
+    private val _currentUser = MutableStateFlow<String?>(null)
+    val currentUser = _currentUser.asStateFlow()
 
     // Se llama SOLO cuando el Login es exitoso
     fun iniciarSesion() {
@@ -25,6 +30,11 @@ object SessionManager {
         horaInicioSesion = tiempoActual
         ultimaInteraccion = tiempoActual
         _sesionExpirada.value = false
+    }
+
+    fun setCurrentUser(nombre: String) {
+        nombreUsuarioActual = nombre
+        _currentUser.value = nombre
     }
 
     // Se llama cada vez que el usuario cambia de pantalla o toca algo
@@ -57,5 +67,7 @@ object SessionManager {
         _sesionExpirada.value = true
         horaInicioSesion = 0
         ultimaInteraccion = 0
+        nombreUsuarioActual = null
+        _currentUser.value = null
     }
 }

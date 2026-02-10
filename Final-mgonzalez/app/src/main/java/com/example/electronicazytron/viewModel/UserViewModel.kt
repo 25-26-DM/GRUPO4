@@ -34,4 +34,19 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
+    fun obtenerLastAccess(nombre: String, onResult: (String?) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val valor = repository.obtenerLastAccess(nombre)
+            withContext(Dispatchers.Main) {
+                onResult(valor)
+            }
+        }
+    }
+
+    fun actualizarLastAccess(nombre: String, valor: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.actualizarLastAccess(nombre, valor)
+        }
+    }
 }

@@ -40,6 +40,9 @@ class SyncService : Service() {
         const val CHANNEL_ID = "sync_channel"
         const val CHANNEL_NAME = "Sincronización"
         const val NOTIFICATION_ID = 1001
+        // Bandera para evitar notificaciones repetidas durante la misma ejecución de la app
+        @Volatile
+        var notificationShownForRun: Boolean = false
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -90,6 +93,12 @@ class SyncService : Service() {
      * Notifica al usuario que la sincronización se completó con el número de productos
      */
     private suspend fun notificarSincronizacion(productoDao: ProductoDao) {
+        // Mostrar la notificación sólo una vez por ejecución de la app
+        if (notificationShownForRun) {
+            Log.i(TAG, "Notificación de sincronización ya mostrada en esta ejecución. Omitiendo.")
+            return
+        }
+
         try {
             // Contar productos en la base de datos local
             val productCount = productoDao.count()
@@ -114,6 +123,7 @@ class SyncService : Service() {
                 .setVibrate(longArrayOf(0, 500))
 
             // Verificar permisos antes de mostrar la notificación (Android 13+)
+            var attempted = false
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 if (ContextCompat.checkSelfPermission(
                         applicationContext,
@@ -123,6 +133,7 @@ class SyncService : Service() {
                     NotificationManagerCompat.from(applicationContext)
                         .notify(NOTIFICATION_ID, builder.build())
                     Log.i(TAG, "Notificación enviada exitosamente con $productCount productos")
+                    attempted = true
                 } else {
                     Log.w(TAG, "Permiso POST_NOTIFICATIONS no concedido. Notificación no mostrada.")
                 }
@@ -131,10 +142,19 @@ class SyncService : Service() {
                 NotificationManagerCompat.from(applicationContext)
                     .notify(NOTIFICATION_ID, builder.build())
                 Log.i(TAG, "Notificación enviada exitosamente (Android < 13) con $productCount productos")
+                attempted = true
+            }
+
+            // Marcar que ya intentamos la notificación en esta ejecución para no repetirla
+            notificationShownForRun = true
+            if (!attempted) {
+                Log.i(TAG, "Intento de notificación realizado pero no mostrado (permiso). Se omitirá en lo sucesivo.")
             }
         } catch (ex: Exception) {
             Log.e(TAG, "Error al notificar sincronización: ${ex.message}", ex)
             ex.printStackTrace()
+            // Aun en caso de error, evitar múltiples intentos
+            notificationShownForRun = true
         }
     }
 
@@ -240,14 +260,19 @@ class SyncService : Service() {
             try {
                 Log.i(TAG, "PutItem")
                 Log.i(TAG, "Insertando en DynamoDB: user id=${user.id}")
+                val itemValues = mutableMapOf<String, AttributeValue>(
+                    "id" to AttributeValue.N(user.id.toString()),
+                    "nombre" to AttributeValue.S(user.nombre),
+                    "apellido" to AttributeValue.S(user.apellido),
+                    "password" to AttributeValue.S(user.password)
+                )
+                if (!user.lastAccess.isNullOrEmpty()) {
+                    itemValues["lastAccess"] = AttributeValue.S(user.lastAccess!!)
+                }
+
                 dynamoDbClient.putItem {
                     tableName = "users"
-                    item = mapOf(
-                        "id" to AttributeValue.N(user.id.toString()),
-                        "nombre" to AttributeValue.S(user.nombre),
-                        "apellido" to AttributeValue.S(user.apellido),
-                        "password" to AttributeValue.S(user.password)
-                    )
+                    item = itemValues
                 }
                 user.isSynced = true
                 userDao.update(user)
@@ -266,7 +291,8 @@ class SyncService : Service() {
                     nombre = item["nombre"]?.asS() ?: "",
                     apellido = item["apellido"]?.asS() ?: "",
                     password = item["password"]?.asS() ?: "",
-                    isSynced = true
+                    isSynced = true,
+                    lastAccess = item["lastAccess"]?.asS()
                 )
                 userDao.insertOrUpdate(u)
             }

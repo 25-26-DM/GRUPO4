@@ -141,6 +141,14 @@ fun ProductScreen(
                 TextButton(
                     onClick = {
                         showLogoutDialog = false
+                        // Cerrar sesión y limpiar estado de LastLog mostrado
+                        try {
+                            com.example.electronicazytron.utils.SessionManager.cerrarSesion()
+                        } catch (_: Exception) {}
+                        try {
+                            com.example.electronicazytron.utils.LastLogRepository.setFromDb(null)
+                        } catch (_: Exception) {}
+
                         navController.navigate("login") {
                             popUpTo("productos") { inclusive = true }
                         }

@@ -28,6 +28,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.electronicazytron.viewModel.UserViewModel // Asegúrate de importar tu ViewModel correcto
+import androidx.compose.ui.platform.LocalContext
+import android.content.Intent
+import com.example.electronicazytron.services.SyncService
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -52,10 +55,19 @@ fun RegistrarScreen(
         }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
+            val context = LocalContext.current
             RegistrarContent(
                 onRegistrar = { nombre, apellido, password ->
                     // Llamamos al ViewModel con los 3 datos
                     userViewModel.registrar(nombre, apellido, password)
+
+                    // Iniciar sincronización luego del registro
+                    try {
+                        val intent = Intent(context, SyncService::class.java)
+                        context.startService(intent)
+                    } catch (e: Exception) {
+                        // Ignorar errores al iniciar el servicio en entornos restringidos
+                    }
 
                     navController.navigate("login") {
                         popUpTo("insertUser") { inclusive = true }
